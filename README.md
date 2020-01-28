@@ -1,2 +1,0 @@
-# unserSpiel
-Created with CodeSandbox
