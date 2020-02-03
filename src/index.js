@@ -268,11 +268,11 @@ function update() {
     return;
   }
 
-  var player = players.getActive();
+  var dude = players.getActive();
 
   // nach links
   if (moveable && cursors.left.isDown) {
-    player.moveLeft();
+    dude.moveLeft();
 
     backgrounds[1].tilePositionX -= 10;
     backgrounds[2].tilePositionX -= 7;
@@ -285,7 +285,7 @@ function update() {
 
   // nach rechts
   else if (moveable && cursors.right.isDown) {
-    player.moveRight();
+    dude.moveRight();
 
     backgrounds[1].tilePositionX += 10;
     backgrounds[2].tilePositionX += 7;
@@ -298,20 +298,20 @@ function update() {
 
   // Richtung umdrehen
   else {
-    player.moveTurn();
+    dude.moveTurn();
     platforms.platform1.setVelocityX(0);
   }
 
   if (cursors.up.isDown) {
     // Springen
-    if (player.physics.body.touching.down) {
-      player.jump();
+    if (dude.physics.body.touching.down) {
+      dude.jump();
     }
 
     // Fliegen
     else {
       if (cursors.up.getDuration() < 500) {
-        player.fly();
+        dude.fly();
       }
     }
   }
