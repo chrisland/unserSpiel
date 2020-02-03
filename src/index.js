@@ -25,7 +25,7 @@ function preload() {
   this.load.image("bg4", "assets/level_1/level_4.png");
   this.load.image("sky", "assets/level_1/sky.png");
 
-  this.load.image("ground", "assets/background/platform.png");
+  this.load.image('ground', 'examples/DinoDash/assets/background/platform.png');
 
   this.load.spritesheet("player_1", "assets/dude.png", {
     frameWidth: 32,
@@ -37,178 +37,102 @@ function preload() {
   });
 }
 
-var platforms;
+/*
+ * Global Variables
+ */
 
-//var player;
+/* Players */
+var players = {};
 
-var players = {
-  active: false,
-  count: 0,
-  childs: [],
-  getActive: function() {
-    if (this.active !== false && this.childs[this.active]) {
-      return this.childs[this.active];
-    }
-    return false;
-  },
-  setActive: function(key, scene) {
-    this.active = key;
-    players.getActive().visible = true;
-    scene.physics.add.collider(players.getActive(), scene.ground);
-    scene.physics.add.collider(players.getActive(), platforms);
-  },
-  toggle: function(scene) {
-    var temp = players.getActive();
-    temp.setVelocity(0, 0);
-    temp.visible = false;
+/* Platforms */
+var platforms = {};
 
-    var next = this.active + 1;
-    if (next >= this.childs.length) {
-      next = 0;
-    }
-    this.setActive(next, scene);
+/* Backgrounds */
+var backgrounds = {};
 
-    players.getActive().setVelocity(0, 0);
-    players.getActive().x = temp.x;
-    players.getActive().y = temp.y;
+/* Cursors */
+var cursors = {};
 
-    count++;
-  }
+/* Controls */
+var controls = {
+  playerChange: {},
 };
-var cursors;
-var keyPlayerChange;
 
-var gameOver;
+/* HUD */
+var hud = {};
 
+/* gameOver? */
+var gameOver = false;
+
+/* moveable? */
+var moveable = true;
+
+/**
+ * Create function
+ */
 function create() {
   /*
    * Hintergrund
    */
-  this.add.image(400, 300, "sky");
 
-  this.background3 = this.add.tileSprite(2500, 300, 5000, 600, "bg3");
-  this.background4 = this.add.tileSprite(2500, 300, 5000, 600, "bg4");
-  this.background2 = this.add.tileSprite(2500, 300, 5000, 600, "bg2");
-  this.background1 = this.add.tileSprite(2500, 300, 5000, 600, "bg1");
+  backgrounds = {
+    sky: this.add.image(400, 300, 'sky'),
+    1: this.add.tileSprite(2500, 300, 5000, 600, 'bg1'),
+    2: this.add.tileSprite(2500, 300, 5000, 600, 'bg2'),
+    3: this.add.tileSprite(2500, 300, 5000, 600, 'bg3'),
+    4: this.add.tileSprite(2500, 300, 5000, 600, 'bg4'),
+  };
 
   /*
-   * PLATFORM
+   * Platform
    */
 
-  platforms = this.physics.add.staticGroup();
-  /*
-  platforms
-    .create(400, 568, "ground")
-    .setScale(2)
-    .refreshBody();
-    */
+  // ground
+  var ground = this.add.tileSprite(400, 568, 800, 100, 'ground');
+  this.physics.add.existing(ground);
+  ground.body.immovable = true;
+  ground.body.moves = false;
+  platforms.ground = ground;
 
-  //platforms.create(600, 400, "ground");
-  //platforms.create(50, 250, "ground");
-
-  //platforms.create(750, 220, "ground");
-  //platforms.create(700, 520, "ground");
-
-  this.ground = this.add.tileSprite(400, 568, 800, 100, "ground");
-  this.physics.add.existing(this.ground);
-  this.ground.body.immovable = true;
-  this.ground.body.moves = false;
+  // platform1
+  var platform1 = this.physics.add.sprite(700, 450, 'ground');
+  platform1.body.immovable = true;
+  platform1.body.allowGravity = false;
+  platforms.platform1 = platform1;
 
   /*
    * Player - Spielfigur
    */
-  // PLAYER 1
-  players.childs[0] = this.physics.add.sprite(100, 450, "player_1");
-  players.childs[0]._name = "player_1";
-  players.childs[0].setBounce(0.2);
-  players.childs[0].setCollideWorldBounds(true);
-  players.childs[0].visible = false;
+
+  // Player 1
+  players.children[0] = new Player('player_1', this);
+
+  // Player 2
+  players.children[1] = new Player('player_2', this);
 
   // Set Player
   players.setActive(0, this);
 
-  this.anims.create({
-    key: "player_1_left",
-    frames: this.anims.generateFrameNumbers("player_1", { start: 0, end: 3 }),
-    frameRate: 10,
-    repeat: -1
-  });
-
-  this.anims.create({
-    key: "player_1_turn",
-    frames: [{ key: "player_1", frame: 4 }],
-    frameRate: 20
-  });
-
-  this.anims.create({
-    key: "player_1_right",
-    frames: this.anims.generateFrameNumbers("player_1", { start: 5, end: 8 }),
-    frameRate: 10,
-    repeat: -1
-  });
-
-  // Player 2
-  players.childs[1] = this.physics.add.sprite(100, 450, "player_2");
-  players.childs[1]._name = "player_2";
-  players.childs[1].setBounce(0.2);
-  players.childs[1].setCollideWorldBounds(true);
-  players.childs[1].visible = false;
-
-  this.anims.create({
-    key: "player_2_left",
-    frames: this.anims.generateFrameNumbers("player_2", { start: 0, end: 3 }),
-    frameRate: 10,
-    repeat: -1
-  });
-
-  this.anims.create({
-    key: "player_2_turn",
-    frames: [{ key: "player_2", frame: 4 }],
-    frameRate: 20
-  });
-
-  this.anims.create({
-    key: "player_2_right",
-    frames: this.anims.generateFrameNumbers("player_2", { start: 5, end: 8 }),
-    frameRate: 10,
-    repeat: -1
-  });
-
   /*
    * Input Events - Eingaben
    */
+
   cursors = this.input.keyboard.createCursorKeys();
-  keyPlayerChange = this.input.keyboard.addKey("C");
-  /*
-   * Physics
-   */
-  //this.physics.add.collider(players.childs[0], this.ground);
-  //### this.physics.add.collider(players.getActive(), this.ground);
-  //this.physics.add.collider(player, platforms);
-
-  //platforms = this.add.tileSprite(700, 520, 300, 200, "ground");
-  platforms = this.physics.add.sprite(700, 450, "ground");
-  //this.physics.add.collider(player, platforms);
-
-  platforms.body.immovable = true;
-  platforms.body.allowGravity = false;
-  //console.log(platforms.body);
-  //this.physics.add.existing(platforms);
-  //### this.physics.add.collider(players.getActive(), platforms);
-
-  //this.cameras.main.startFollow(player, true, 0.05, 0.05);
+  controls.playerChange = this.input.keyboard.addKey('C');
 
   /*
    * HUD
    */
-  this.playerChanges = this.add.text(16, 16, "playerChanges: 0", {
-    fontSize: "32px",
-    fill: "#FFFFFF"
+
+  hud.playerChanges = this.add.text(16, 16, 'playerChanges: 0', {
+    fontSize: '32px',
+    fill: '#FFFFFF',
   });
 }
 
-var moveable = true;
-
+/**
+ * Update function
+ */
 function update() {
   /*
    * Spiel Ende ?
@@ -218,107 +142,54 @@ function update() {
   }
 
   var player = players.getActive();
-  //console.log(player._name);
-  /*
-   * Steuerung
-   */
 
-  player.setVelocityX(0);
-  //platforms.setVelocity(0, 0);
+  // nach links
+  if (moveable && cursors.left.isDown) {
+    player.moveLeft();
 
-  //console.log(moveable);
-  var playerBounds = player.getBounds();
+    backgrounds[1].tilePositionX -= 10;
+    backgrounds[2].tilePositionX -= 7;
+    backgrounds[3].tilePositionX -= 2;
+    backgrounds[4].tilePositionX -= 5;
+    platforms.ground.tilePositionX -= 10;
 
-  if (
-    moveable &&
-    cursors.left.isDown /* Phaser.Input.Keyboard.JustDown(cursors.left)*/
-  ) {
-    // nach Links
-    if (playerBounds.x > 100) {
-      player.setVelocityX(-140);
-    }
-    player.anims.play(player._name + "_left", true);
+    platforms.platform1.setVelocityX(280);
+  }
 
-    this.background1.tilePositionX -= 10;
-    this.background2.tilePositionX -= 7;
-    this.background3.tilePositionX -= 2;
-    this.background4.tilePositionX -= 5;
-    this.ground.tilePositionX -= 10;
+  // nach rechts
+  else if (moveable && cursors.right.isDown) {
+    player.moveRight();
 
-    //platforms.setVelocityX(1);
+    backgrounds[1].tilePositionX += 10;
+    backgrounds[2].tilePositionX += 7;
+    backgrounds[3].tilePositionX += 2;
+    backgrounds[4].tilePositionX += 5;
+    platforms.ground.tilePositionX += 10;
 
-    //platforms.incX(7).refresh();
-    //platforms.children.entries[1].body.velocity.x = 20;
+    platforms.platform1.setVelocityX(-280);
+  }
 
-    platforms.setVelocityX(280);
-    //moveable = false;
-  } else if (
-    moveable &&
-    cursors.right.isDown /* Phaser.Input.Keyboard.JustDown(cursors.right)*/
-  ) {
-    // nach Rechts
-
-    //platforms.incX(-7).refresh();
-
-    //console.log(platforms.children.entries[1].body);
-
-    //platforms.setVelocityX(-140);
-    //platforms.x -= 7;
-
-    //platforms.children.entries[1].body.setVelocityX(-140);
-    //platforms.children.entries[1].body.position.x = platforms.children.entries[1].body.position.x - 7;
-
-    //platforms.refresh();
-
-    // nicht zu weit links rausschieben lassen
-    if (playerBounds.x < 50) {
-      player.setVelocityX(140);
-      return false;
-    }
-
-    // nicht zu weit nach rechts laufen
-    if (playerBounds.x < 500) {
-      player.setVelocityX(140);
-      //console.log(player.speed);
-      //player.body.velocity.y = 140;
-    }
-    player.anims.play(player._name + "_right", true);
-
-    //platforms.body.velocity.y = 140;
-    platforms.setVelocityX(-280);
-
-    this.background1.tilePositionX += 10;
-    this.background2.tilePositionX += 7;
-    this.background3.tilePositionX += 2;
-    this.background4.tilePositionX += 5;
-    this.ground.tilePositionX += 10;
-
-    //moveable = false;
-  } else {
-    //moveable = true;
-    player.setVelocityX(0);
-    player.anims.play(player._name + "_turn");
-    platforms.setVelocityX(0);
+  // Richtung umdrehen
+  else {
+    player.moveTurn();
+    platforms.platform1.setVelocityX(0);
   }
 
   if (cursors.up.isDown) {
-    if (player.body.touching.down) {
-      // Springen
-      player.setVelocityY(-330);
-      //TODO: animation
-    } else {
-      // Fliegen
+    // Springen
+    if (player.physics.body.touching.down) {
+      player.jump();
+    }
+
+    // Fliegen
+    else {
       if (cursors.up.getDuration() < 500) {
-        player.setVelocityY(-100);
-        //TODO: animation
+        player.fly();
       }
     }
   }
 
-  if (Phaser.Input.Keyboard.JustDown(keyPlayerChange)) {
-    console.log("change player");
-    //player.setVelocity(0, 0);
-    //player = player_2;
+  if (Phaser.Input.Keyboard.JustDown(controls.playerChange)) {
     players.toggle(this);
   }
 }
