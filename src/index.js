@@ -1,12 +1,3 @@
-/*
-stars and bombs:
-https://github.com/mshin1995/DinoDash/blob/master/src/game.js
-
-
-nice Bullet:
-http://labs.phaser.io/edit.html?src=src/input/keyboard/just%20down.js
-*/
-
 var config = {
   type: Phaser.AUTO,
   width: 800,
