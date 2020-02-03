@@ -182,7 +182,7 @@ function preload() {
   this.load.image("bg4", "assets/level_1/level_4.png");
   this.load.image("sky", "assets/level_1/sky.png");
 
-  this.load.image('ground', 'examples/DinoDash/assets/background/platform.png');
+  this.load.image('ground', 'assets/platform.png');
 
   this.load.spritesheet("player_1", "assets/dude.png", {
     frameWidth: 32,
