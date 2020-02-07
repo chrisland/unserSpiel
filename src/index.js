@@ -48,6 +48,8 @@ var gameOver = false;
 /* moveable? */
 var moveable = true;
 
+var stars = [];
+
 // players manager
 players = {
   active: 0,
@@ -192,6 +194,8 @@ function preload() {
     frameWidth: 32,
     frameHeight: 48
   });
+
+  this.load.image('star', 'assets/stern.png');
 }
 
 /**
@@ -209,6 +213,9 @@ function create() {
     3: this.add.tileSprite(2500, 300, 5000, 600, 'bg3'),
     4: this.add.tileSprite(2500, 300, 5000, 600, 'bg4'),
   };
+
+  stars.push(this.add.image(400, 300, 'star'));
+  stars.push(this.add.image(500, 400, 'star'));
 
   /*
    * Platform
