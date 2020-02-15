@@ -25,8 +25,12 @@ var game = new Phaser.Game(config);
 /* Players */
 var players = {};
 
-/* Platforms */
-var platforms = {};
+/* Collidables */
+var collidables = {
+  ground: {},
+  platforms: {},
+  stars: {},
+};
 
 /* Backgrounds */
 var backgrounds = {};
@@ -48,8 +52,6 @@ var gameOver = false;
 /* moveable? */
 var moveable = true;
 
-var stars = [];
-
 // players manager
 players = {
   active: 0,
@@ -66,10 +68,7 @@ players = {
 
     activePlayer.physics.visible = true;
 
-    // make player collidable with platforms
-    for (var platform of Object.values(platforms)) {
-      scene.physics.add.collider(activePlayer.physics, platform);
-    }
+    this.setupCollissions(scene);
   },
 
   toggle: function(scene) {
@@ -89,6 +88,33 @@ players = {
     newActivePlayer.physics.y = currentActivePlayer.physics.y;
 
     this.count++;
+  },
+
+  // make player collidable with..
+  setupCollissions: function (scene) {
+    var self = this;
+    var activePlayer = this.getActive();
+
+    // ..ground
+    scene.physics.add.collider(activePlayer.physics, collidables.ground);
+
+    // ..platforms
+    scene.physics.add.collider(activePlayer.physics, collidables.platforms, function (player, platform) {
+      moveable = false;
+    });
+
+    // activePlayer.physics.touching.left??
+    for (var platform of collidables.platforms.getChildren()) {
+      console.log(platform);
+      platform.on('collide', function () {
+        console.log('iiyooo');
+      });
+    }
+
+    // ..stars
+    scene.physics.add.collider(activePlayer.physics, collidables.stars, function (player, star) {
+      star.destroy();
+    });
   }
 };
 
@@ -138,7 +164,7 @@ function Player(name, scene) {
     }
 
     self.physics.anims.play(name + '_left', true);
-  }
+  };
 
   this.moveRight = function () {
     var bounds = self.physics.getBounds();
@@ -160,12 +186,12 @@ function Player(name, scene) {
   this.moveTurn = function () {
     self.physics.setVelocityX(0);
     self.physics.anims.play(name + '_turn');
-  }
+  };
 
   this.jump = function () {
     self.physics.setVelocityY(-330);
     // TODO: animation
-  }
+  };
 
   this.fly = function () {
     self.physics.setVelocityY(-100);
@@ -202,6 +228,8 @@ function preload() {
  * Create function
  */
 function create() {
+  var self = this;
+
   /*
    * Hintergrund
    */
@@ -214,9 +242,6 @@ function create() {
     4: this.add.tileSprite(2500, 300, 5000, 600, 'bg4'),
   };
 
-  stars.push(this.add.image(400, 300, 'star'));
-  stars.push(this.add.image(500, 400, 'star'));
-
   /*
    * Platform
    */
@@ -226,13 +251,24 @@ function create() {
   this.physics.add.existing(ground);
   ground.body.immovable = true;
   ground.body.moves = false;
-  platforms.ground = ground;
+  collidables.ground = ground;
+
+  // platforms
+  collidables.platforms = this.add.group();
 
   // platform1
   var platform1 = this.physics.add.sprite(700, 450, 'ground');
   platform1.body.immovable = true;
   platform1.body.allowGravity = false;
-  platforms.platform1 = platform1;
+  collidables.platforms.add(platform1);
+
+  // stars
+  collidables.stars = this.add.group();
+
+  var star = this.physics.add.sprite(400, 300, 'star');
+  star.body.immovable = true;
+  star.body.allowGravity = false;
+  collidables.stars.add(star);
 
   /*
    * Player - Spielfigur
@@ -258,10 +294,12 @@ function create() {
    * HUD
    */
 
+  /*
   hud.playerChanges = this.add.text(16, 16, 'playerChanges: 0', {
     fontSize: '32px',
     fill: '#FFFFFF',
   });
+  */
 }
 
 /**
@@ -285,9 +323,11 @@ function update() {
     backgrounds[2].tilePositionX -= 7;
     backgrounds[3].tilePositionX -= 2;
     backgrounds[4].tilePositionX -= 5;
-    platforms.ground.tilePositionX -= 10;
+    collidables.ground.tilePositionX -= 10;
 
-    platforms.platform1.setVelocityX(280);
+    collidables.platforms.getChildren().forEach(function (platform) {
+      platform.setVelocityX(280);
+    });
   }
 
   // nach rechts
@@ -298,16 +338,21 @@ function update() {
     backgrounds[2].tilePositionX += 7;
     backgrounds[3].tilePositionX += 2;
     backgrounds[4].tilePositionX += 5;
-    platforms.ground.tilePositionX += 10;
+    collidables.ground.tilePositionX += 10;
 
-    platforms.platform1.setVelocityX(-280);
+    collidables.platforms.getChildren().forEach(function (platform) {
+      platform.setVelocityX(-280);
+    });
   }
 
   // Richtung umdrehen
   else {
     dude.moveTurn();
-    platforms.platform1.setVelocityX(0);
+    collidables.platforms.getChildren().forEach(function (platform) {
+      platform.setVelocityX(0);
+    });
   }
+  moveable = true;
 
   if (cursors.up.isDown) {
     // Springen
