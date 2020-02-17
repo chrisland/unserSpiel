@@ -25,6 +25,9 @@ var game = new Phaser.Game(config);
 /* Players */
 var players = {};
 
+/* Bullets */
+var bullets = {};
+
 /* Collidables */
 var collidables = {
   ground: {},
@@ -41,6 +44,7 @@ var cursors = {};
 /* Controls */
 var controls = {
   playerChange: {},
+  fire: {}
 };
 
 /* HUD */
@@ -198,6 +202,10 @@ function Player(name, scene) {
     //TODO: animation
   }
 
+  this.getBounds = function () {
+    return self.physics.getBounds();
+  }
+
 }
 
 /**
@@ -222,6 +230,9 @@ function preload() {
   });
 
   this.load.image('star', 'assets/stern.png');
+
+  this.load.image('bullet', 'assets/dude.png');
+
 }
 
 /**
@@ -284,11 +295,56 @@ function create() {
   players.setActive(0, this);
 
   /*
+  * Bullets
+  */
+  var Bullet = new Phaser.Class({
+
+    Extends: Phaser.GameObjects.Image,
+
+    initialize:
+
+    function Bullet (scene)
+    {
+      Phaser.GameObjects.Image.call(this, scene, 0, 0, 'bullet');
+
+      this.speed = Phaser.Math.GetSpeed(600, 1);
+    },
+
+    fire: function (x, y)
+    {
+      this.setPosition(x, y);
+
+      this.setActive(true);
+      this.setVisible(true);
+    },
+
+    update: function (time, delta)
+    {
+      this.x += this.speed * delta;
+
+      if (this.x > 820)
+      {
+          this.setActive(false);
+          this.setVisible(false);
+      }
+    }
+
+  });
+
+  bullets = this.add.group({
+    classType: Bullet,
+    maxSize: 30,
+    runChildUpdate: true
+  });
+
+  /*
    * Input Events - Eingaben
    */
 
   cursors = this.input.keyboard.createCursorKeys();
   controls.playerChange = this.input.keyboard.addKey('C');
+
+  controls.fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
   /*
    * HUD
@@ -371,4 +427,15 @@ function update() {
   if (Phaser.Input.Keyboard.JustDown(controls.playerChange)) {
     players.toggle(this);
   }
+
+  if (Phaser.Input.Keyboard.JustDown(controls.fire)) {
+
+      var bullet = bullets.get();
+
+      if (bullet) {
+        let dude_bounds = dude.getBounds();
+        bullet.fire(dude_bounds.x, dude_bounds.y);
+      }
+  }
+
 }
